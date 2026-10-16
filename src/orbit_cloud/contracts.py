@@ -16,6 +16,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Protocol, runtime_checkable
 
 from pydantic import (
@@ -26,6 +28,7 @@ from pydantic import (
     StrictInt,
     StrictStr,
     ValidationInfo,
+    field_serializer,
     field_validator,
 )
 
@@ -40,6 +43,7 @@ _PROVIDER = re.compile(r"[a-z][a-z0-9-]{0,63}\Z")
 
 
 def _bounded_text(value: str, *, field: str, maximum: int) -> str:
+    """Require trimmed printable text without changing provider-native identifier spelling."""
     if not value or len(value) > maximum or value != value.strip():
         raise ValueError(f"{field} must be non-empty, trimmed text within its length limit.")
     if any(ord(char) < 32 or ord(char) == 127 for char in value):
@@ -57,7 +61,7 @@ class CloudResource(BaseModel):
     resource_type: StrictStr = Field(min_length=1, max_length=512)
     name: StrictStr | None = Field(default=None, max_length=512, repr=False)
     location: StrictStr | None = Field(default=None, max_length=256)
-    labels: dict[StrictStr, StrictStr] = Field(
+    labels: Mapping[StrictStr, StrictStr] = Field(
         default_factory=dict, max_length=_MAX_LABELS, repr=False
     )
 
@@ -89,12 +93,22 @@ class CloudResource(BaseModel):
 
     @field_validator("labels")
     @classmethod
-    def validate_labels(cls, value: dict[str, str]) -> dict[str, str]:
+    def validate_labels(cls, value: Mapping[str, str]) -> dict[str, str]:
         """Validate bounded, printable label keys and values."""
-        for key, item in value.items():
+        copied = dict(value)
+        for key, item in copied.items():
             _bounded_text(key, field="label key", maximum=_MAX_LABEL_TEXT)
             _bounded_text(item, field="label value", maximum=_MAX_LABEL_TEXT)
-        return value
+        return copied
+
+    def model_post_init(self, __context: object) -> None:
+        """Detach and freeze labels so a validated inventory page cannot change later."""
+        object.__setattr__(self, "labels", MappingProxyType(dict(self.labels)))
+
+    @field_serializer("labels")
+    def serialize_labels(self, value: Mapping[str, str]) -> dict[str, str]:
+        """Serialize immutable provider labels as an ordinary dictionary."""
+        return dict(value)
 
 
 class CloudInventoryQuery(BaseModel):

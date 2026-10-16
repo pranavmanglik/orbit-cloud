@@ -11,7 +11,7 @@ orbit-cloud
 └── orbit-cloud-azure
 ```
 
-**Status:** pre-alpha. The contract and three adapter implementations are under active development.
+**Status:** unpublished v0.1.0-alpha review candidate. The contract and three adapter implementations are under active development.
 This does not imply live cloud validation, production certification, or release readiness.
 
 ## Install
@@ -56,6 +56,8 @@ opaque, provider-specific, bounded, and should not be logged.
 
 The common result contains only normalized resource ID, type, display name, location, and optionally
 bounded labels. The initial adapters omit labels and raw provider payloads to limit disclosure.
+Resource pages and label mappings are detached immutable values; serialization produces ordinary
+JSON-compatible dictionaries.
 Inventory results can be eventually consistent, filtered by permissions, or incomplete; consult
 each adapter's documentation and its `partial` result flag.
 

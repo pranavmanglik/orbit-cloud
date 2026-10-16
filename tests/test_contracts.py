@@ -51,6 +51,22 @@ def test_inventory_models_accept_normalized_metadata() -> None:
     assert "opaque-token" not in repr(page)
 
 
+def test_resource_copies_and_freezes_labels() -> None:
+    labels = {"environment": "staging"}
+    resource = CloudResource(
+        provider="aws",
+        resource_id="arn:aws:ec2:us-east-1:123456789012:instance/i-123",
+        resource_type="ec2:instance",
+        labels=labels,
+    )
+
+    labels["environment"] = "production"
+    assert resource.labels["environment"] == "staging"
+    with pytest.raises(TypeError):
+        resource.labels["environment"] = "production"  # type: ignore[index]
+    assert resource.model_dump(mode="json")["labels"] == {"environment": "staging"}
+
+
 @pytest.mark.parametrize(
     "values",
     [

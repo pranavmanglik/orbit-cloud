@@ -1,6 +1,6 @@
 # Orbit Cloud roadmap
 
-This package and its adapters are pre-alpha. The current implemented scope is a provider-neutral,
+This package and its adapters are alpha. The current implemented scope is a provider-neutral,
 read-only inventory contract with AWS Resource Explorer, Google Cloud Asset Inventory, and Azure
 Resource Graph adapters. Local fake-client tests do not imply live-provider support or release
 readiness.

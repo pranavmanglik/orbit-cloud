@@ -32,11 +32,11 @@ consistent.
 
 The `CloudResource` model intentionally excludes arbitrary raw provider documents. It exposes
 resource ID, type, name, location, and optional bounded labels. The initial adapters omit labels.
-Adapters reject malformed provider pages with sanitized errors instead of silently dropping
-records, and map SDK failures to
-`CloudOperationError` values with explicit retry guidance. Caller cancellation propagates through
-asynchronous SDK calls. Clients are created lazily,
-bounded by adapter concurrency and request timeouts, and closed by `aclose()`.
+Models are frozen; label mappings are detached and read-only after validation, then serialize as
+ordinary dictionaries. Adapters reject malformed provider pages with sanitized errors instead of
+silently dropping records, and map SDK failures to `CloudOperationError` values with explicit
+retry guidance. Caller cancellation propagates through asynchronous SDK calls. Clients are created
+lazily, bounded by adapter concurrency and request timeouts, and closed by `aclose()`.
 
 ## Provider choice
 
